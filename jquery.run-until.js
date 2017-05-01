@@ -1,74 +1,56 @@
-/*
- *  jquery-boilerplate - v4.0.0
- *  A jump-start for jQuery plugins development.
- *  http://jqueryboilerplate.com
- *
- *  Made by Zeno Rocha
- *  Under MIT License
- */
-// the semi-colon before function invocation is a safety net against concatenated
-// scripts and/or other plugins which may not be closed properly.
-;( function( $, window, document, undefined ) {
+(function($) {
+    var defaultOptions = {
+        interval: 100,
+        timeout: 6e4,
+        minLength: 1,
+        resolveCheck: function($ele, settings, runTime) {
+            return $ele.length >= settings.minLength
+        },
+        rejectCheck: function($ele, settings, runTime) {
+            return $ele.length < settings.minLength && settings.timeout <= runTime
+        },
+    }
 
-	"use strict";
+    function update($ele, settings, runTime, p, cancelInterval) {
+        var $this = $($ele.selector)
+        if(settings.resolveCheck($this, settings, runTime)) {
+            clearInterval(cancelInterval)
+            p.resolve($this)
+        }
+        else if(settings.rejectCheck($this, settings, runTime)) {
+            clearInterval(cancelInterval)
+            p.reject($this)
+        }
+    }
+    
 
-		// undefined is used here as the undefined global variable in ECMAScript 3 is
-		// mutable (ie. it can be changed by someone else). undefined isn't really being
-		// passed in so we can ensure the value of it is truly undefined. In ES5, undefined
-		// can no longer be modified.
+    $.fn.waitForIt = function(options) {
+        var $this = $(this)
+        var settings = $.extend(true, {}, defaultOptions, options)
+        var runTime = 0
+        var p = $.Deferred()
 
-		// window and document are passed through as local variable rather than global
-		// as this (slightly) quickens the resolution process and can be more efficiently
-		// minified (especially when both are regularly referenced in your plugin).
+        var cancelInterval = setInterval(function($ele, settings, p) {
+            runTime += settings.interval
+            update($ele, settings, runTime, p, cancelInterval)
+        }, settings.interval, $this, settings, p, cancelInterval)
 
-		// Create the defaults once
-		var pluginName = "defaultPluginName",
-			defaults = {
-				propertyName: "value"
-			};
+        return p.promise()
+    }
+})(jQuery)
 
-		// The actual plugin constructor
-		function Plugin ( element, options ) {
-			this.element = element;
 
-			// jQuery has an extend method which merges the contents of two or
-			// more objects, storing the result in the first object. The first object
-			// is generally empty as we don't want to alter the default options for
-			// future instances of the plugin
-			this.settings = $.extend( {}, defaults, options );
-			this._defaults = defaults;
-			this._name = pluginName;
-			this.init();
-		}
 
-		// Avoid Plugin.prototype conflicts
-		$.extend( Plugin.prototype, {
-			init: function() {
 
-				// Place initialization logic here
-				// You already have access to the DOM element and
-				// the options via the instance, e.g. this.element
-				// and this.settings
-				// you can add more functions like the one below and
-				// call them like the example bellow
-				this.yourOtherFunction( "jQuery Boilerplate" );
-			},
-			yourOtherFunction: function( text ) {
 
-				// some logic
-				$( this.element ).text( text );
-			}
-		} );
+// testing it out
+$('.invalid-class').remove()
 
-		// A really lightweight plugin wrapper around the constructor,
-		// preventing against multiple instantiations
-		$.fn[ pluginName ] = function( options ) {
-			return this.each( function() {
-				if ( !$.data( this, "plugin_" + pluginName ) ) {
-					$.data( this, "plugin_" +
-						pluginName, new Plugin( this, options ) );
-				}
-			} );
-		};
+$('.invalid-class')
+    .waitForIt({timeout: 1000, interval: 10})
+    .then(x => console.log('resolved: ', x), x => console.log('rejected: ', x))
 
-} )( jQuery, window, document );
+setTimeout(function() {
+    $('body').append($('<div />').addClass('invalid-class'))
+    console.log('appended')
+}, 1000)
