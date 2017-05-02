@@ -51,6 +51,7 @@ Default Options
 var defaultOptions = {
     interval: 100,
     timeout: 6e4,
+    selector: $(this).selector,
     minLength: 1,
     resolveCheck: function($ele, settings, runTime) {
       return $ele.length >= settings.minLength
