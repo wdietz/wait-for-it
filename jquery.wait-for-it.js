@@ -17,7 +17,7 @@
       clearInterval(cancelInterval)
       p.resolve($this)
     }
-    else if(settings.rejectCheck($this, settings, runTime)) {
+    else if(settings.timeout >= 0 && settings.rejectCheck($this, settings, runTime)) {
       clearInterval(cancelInterval)
       p.reject($this)
     }
