@@ -34,7 +34,7 @@ setTimeout(function() {
 Options
 -------
 - **interval**: How often to run the resolveCheck (in milliseconds). The default is every 100 milliseconds.
-- **timeout**: Reject the promise after checking for this long (in milliseconds) default is 1 minute (60,000 milliseconds)
+- **timeout**: Reject the promise after checking for this long (in milliseconds) default is 1 minute (60,000 milliseconds). To run until resolved set the timeout to -1.
 - **minLength**: The default check resolves when this many elements match the selector
 - **selector**: This selector is used to match against each interval. The default uses the deprecated .selector from the jQuery object.
 - **resolveCheck**: this function is run each interval, if it returns a truthy value the promise is resolved.
